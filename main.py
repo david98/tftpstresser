@@ -1,17 +1,19 @@
 import tftpy
 import sys
 from os import listdir
-from os.path import isfile, join
+from os.path import isfile, join, getsize
 from time import sleep
 
 
-def upload_files(client, path):
+def upload_files(path):
     files_to_upload = [f for f in listdir(path) if isfile(join(path, f)) and f != '.gitkeep']
     print('Files that will be uploaded: {0}'.format(files_to_upload))
 
     for file in files_to_upload:
         try:
             print('Uploading "{0}"...'.format(file))
+            client = tftpy.TftpClient(addr, 69, options={'blksize': 512, 'timeout': 10,
+                                                         'tsize': getsize(to_upload_path + file)})
             client.upload(file, to_upload_path + file, timeout=10)
             print('Upload succesful.')
             print('Waiting {0} seconds before initiating next transfer...'.format(secs_between_transfers))
@@ -54,18 +56,16 @@ if len(sys.argv) > 4:
         print('Invalid seconds between iterations.')
         exit(1)
 
-client = tftpy.TftpClient(addr, 69, options={'blksize': 512, 'timeout': 10, 'tsize': 25495})
-
 to_upload_path = './to_upload/'
 
 if iterations < 0:
     while True:
-        upload_files(client, to_upload_path)
+        upload_files(to_upload_path)
         print('Waiting {0} seconds before next iteration...'.format(secs_between_iterations))
         sleep(secs_between_iterations)
 else:
     for i in range(0, iterations):
-        upload_files(client, to_upload_path)
+        upload_files(to_upload_path)
         if i < iterations:
             print('Waiting {0} seconds before next iteration...'.format(secs_between_iterations))
             sleep(secs_between_iterations)
